@@ -11,6 +11,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ant-design/pro-components": "^2.6.43",
+    "antd": "^5.12.8",
     "axios": "^1.6.5",
     "cheerio": "^1.0.0-rc.12",
     "puppeteer": "^21.7.0",

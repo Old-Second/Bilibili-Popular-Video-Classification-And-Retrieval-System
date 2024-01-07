@@ -19,7 +19,7 @@ const fetchData = async (videoLink) => {
       const response = await axios.get(videoLink);
       return response.data;
     } catch (error) {
-      console.error('获取数据时出错：', error.message);
+      console.error('获取数据时出错：', error.message, '即将重试');
       retries++;
     }
   }
