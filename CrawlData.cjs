@@ -74,10 +74,13 @@ const processData = async (targetElement) => {
 
 // 爬取数据的主函数
 const crawlData = async () => {
+  // 启动无头浏览器
   const browser = await puppeteer.launch({headless: 'new'});
   console.log("打开热门页面")
+  // 创建一个新页面
   const page = await browser.newPage();
   console.log("页面加载中")
+  // 访问哔哩哔哩热门视频页面
   await page.goto(url, {waitUntil: 'networkidle2'});
 
   let previousHeight;

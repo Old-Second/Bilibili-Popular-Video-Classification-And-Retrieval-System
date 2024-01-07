@@ -129,12 +129,13 @@ function App() {
             <Card.Meta
               description={
                 <Text>
-                  数据更新于：{new Date(videoData!.time).toLocaleString()}
+                  数据更新于：{new Date(videoData?.time || 0).toLocaleString()}
                 </Text>
               }
             /><br/>
             {/* 搜索和分区选择表单 */}
             <ProForm
+              onReset={handleFilterChange}
               onFinish={handleFilterChange}
               submitter={{onSubmit: handleFilterChange}}
             >
