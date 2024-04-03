@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react'
 import './App.css'
-import {Card, ConfigProvider, List, Tag, Typography} from 'antd';
+import {Card, ConfigProvider, List, Select, Space, Tag, Typography} from 'antd';
 import {ProForm, ProFormCascader, ProFormText} from '@ant-design/pro-components';
 
 const {Text, Title, Paragraph} = Typography;
@@ -21,21 +21,52 @@ type Data = {
 }
 
 function App() {
+  const [dataList, setDataList] = useState<{ value: string; label: string }[]>([]);
+  const [selectedTime, setSelectedTime] = useState('');
   const [videoData, setVideoData] = useState<Data>(); // 视频数据
   const [filteredData, setFilteredData] = useState<VideoData[]>([]); // 过滤后的视频数据
   const [loading, setLoading] = useState<boolean>(false);
   
+  const [form] = ProForm.useForm();
+  
   useEffect(() => {
     setLoading(true);
-    // 异步获取数据，更新 videoData 和 filteredData 状态
-    fetch('/result.json')
+    fetch('/result/list.json')
       .then((res) => res.json())
-      .then((res) => {
-        setVideoData(res);
-        setFilteredData(res.video);
-        setLoading(false);
-      });
+      .then((list) => {
+        const lists = list.map((fileName: string) => {
+          return {value: fileName, label: fileName};
+        });
+        setDataList(lists);
+        return list[0];
+      }).then((filename) => {
+      // 获取数据，更新 videoData 和 filteredData 状态
+      fetch(`/result/${filename}.json`)
+        .then((res) => res.json())
+        .then((data) => {
+          setVideoData(data);
+          setFilteredData(data.video);
+          setLoading(false);
+          setSelectedTime(filename);
+          form.resetFields();
+        });
+    })
   }, [])
+  
+  // 根据选择的数据，展示视频
+  const changeTime = (filename: string) => {
+    setLoading(true);
+    // 获取数据，更新 videoData 和 filteredData 状态
+    fetch(`/result/${filename}.json`)
+      .then((res) => res.json())
+      .then((data) => {
+        setVideoData(data);
+        setFilteredData(data.video);
+        setLoading(false);
+        setSelectedTime(filename);
+        form.resetFields();
+      });
+  };
   
   // 定义分区选择器的选项类型
   interface Option {
@@ -126,15 +157,22 @@ function App() {
             哔哩哔哩热门视频分类检索系统
           </Title>
           <Card>
-            <Card.Meta
-              description={
-                <Text>
-                  数据更新于：{new Date(videoData?.time || 0).toLocaleString()}
-                </Text>
-              }
-            /><br/>
+            <Space size='large'>
+              <Card.Meta
+                description={
+                  <Text>
+                    数据更新于：{new Date(videoData?.time || 0).toLocaleString()}
+                  </Text>
+                }
+              />
+              <Select size='large' style={{width: 250}} options={dataList} value={selectedTime}
+                      onSelect={(value) => {
+                        changeTime(value)
+                      }}/>
+            </Space>
             {/* 搜索和分区选择表单 */}
             <ProForm
+              form={form}
               onReset={handleFilterChange}
               onFinish={handleFilterChange}
               submitter={{onSubmit: handleFilterChange}}
@@ -153,7 +191,7 @@ function App() {
         {/* 视频列表 */}
         <div className="box">
           <List
-            rowKey="url"
+            rowKey={(item) => item.url}
             loading={loading}
             pagination={{pageSize: 12, showSizeChanger: false}}
             dataSource={filteredData}
@@ -173,7 +211,7 @@ function App() {
                         {/* 视频标签 */}
                         <Tag bordered={false} color="red">{item.tags.firstChannel}</Tag>
                         <Tag bordered={false} color="green">{item.tags.secondChannel}</Tag>
-                        {item.tags.ordinaryTags.map((tag) => <Tag bordered={false}>{tag}</Tag>)}
+                        {item.tags.ordinaryTags.map((tag) => <Tag key={tag} bordered={false}>{tag}</Tag>)}
                       </Paragraph>
                     }
                   />

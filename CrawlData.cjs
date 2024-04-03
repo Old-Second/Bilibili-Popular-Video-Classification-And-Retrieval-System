@@ -3,6 +3,7 @@ const puppeteer = require('puppeteer');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const fs = require('fs');
+const path = require('path');
 
 // 目标网页的 URL 和用于选择视频元素的 CSS 选择器
 const url = 'https://www.bilibili.com/v/popular/all/';
@@ -104,12 +105,27 @@ const crawlData = async () => {
   // 使用 Promise.all 并行处理每个视频元素的数据
   await Promise.all(targetElements.map(targetElement => processData(targetElement)));
 
+  const currentTime = Date.now();
+  const currentDate = new Date(currentTime + (8 * 60 * 60 * 1000)); // 计算东八区的当前时间
   // 将结果写入 JSON 文件
   const resultObject = {
-    time: Date.now(),
+    time: currentTime,
     video: resultArray
   };
-  fs.writeFileSync('result.json', JSON.stringify(resultObject, null, 2));
+
+  const formattedDate = currentDate.toISOString().slice(0, -5) + '+0800';
+  const fileName = `${formattedDate.replace(/:/g, '-')}.json`;
+  const filePath = path.join('result', fileName);
+  fs.writeFileSync(filePath, JSON.stringify(resultObject, null, 2)); // 将结果对象写入 JSON 文件
+
+  // 读取list.json文件内容
+  let list = [];
+  const listFilePath = path.join('result', 'list.json');
+  if (fs.existsSync(listFilePath)) {
+    list = JSON.parse(fs.readFileSync(listFilePath, 'utf-8'));
+  }
+  list.unshift(fileName.replace('.json', '')); // 将新文件名插入到数组的最前面
+  fs.writeFileSync(listFilePath, JSON.stringify(list, null, 2)); // 更新list.json文件
 
   // 关闭浏览器
   await browser.close();
@@ -118,5 +134,5 @@ const crawlData = async () => {
 // 立即执行一次
 crawlData().then(() => {
   // 每小时执行一次
-  setInterval(crawlData, 3600000);
+  // setInterval(crawlData, 3600000);
 });
