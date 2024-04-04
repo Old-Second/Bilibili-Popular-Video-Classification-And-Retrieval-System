@@ -113,6 +113,11 @@ const crawlData = async () => {
     video: resultArray
   };
 
+  // 如果result目录不存在则创建result目录
+  if (!fs.existsSync('result')) {
+    fs.mkdirSync('result');
+  }
+
   const formattedDate = currentDate.toISOString().slice(0, -5) + '+0800';
   const fileName = `${formattedDate.replace(/:/g, '-')}.json`;
   const filePath = path.join('result', fileName);
