@@ -36,6 +36,7 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
           git checkout -b result
+          git pull origin result:result
           git add result/* -f
           git commit -m "$(TZ=Asia/Shanghai date +"%Y-%m-%d %H:%M:%S")"
           git push origin result
