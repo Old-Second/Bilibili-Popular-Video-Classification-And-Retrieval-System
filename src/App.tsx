@@ -31,7 +31,7 @@ function App() {
   
   useEffect(() => {
     setLoading(true);
-    fetch('/result/list.json')
+    fetch('https://raw.githubusercontent.com/Old-Second/Bilibili-Popular-Video-Classification-And-Retrieval-System/result/result/list.json')
       .then((res) => res.json())
       .then((list) => {
         const lists = list.map((fileName: string) => {
@@ -41,7 +41,7 @@ function App() {
         return list[0];
       }).then((filename) => {
       // 获取数据，更新 videoData 和 filteredData 状态
-      fetch(`/result/${filename}.json`)
+      fetch(`https://raw.githubusercontent.com/Old-Second/Bilibili-Popular-Video-Classification-And-Retrieval-System/result/result/${filename}.json`)
         .then((res) => res.json())
         .then((data) => {
           setVideoData(data);
@@ -57,7 +57,7 @@ function App() {
   const changeTime = (filename: string) => {
     setLoading(true);
     // 获取数据，更新 videoData 和 filteredData 状态
-    fetch(`/result/${filename}.json`)
+    fetch(`https://raw.githubusercontent.com/Old-Second/Bilibili-Popular-Video-Classification-And-Retrieval-System/result/result/${filename}.json`)
       .then((res) => res.json())
       .then((data) => {
         setVideoData(data);
