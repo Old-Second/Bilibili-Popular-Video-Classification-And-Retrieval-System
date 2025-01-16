@@ -76,7 +76,10 @@ const processData = async (targetElement) => {
 // 爬取数据的主函数
 const crawlData = async () => {
   // 启动无头浏览器
-  const browser = await puppeteer.launch({headless: 'new'});
+  const browser = await puppeteer.launch({ 
+    headless: 'new',
+    args: ['--no-sandbox', '--disable-setuid-sandbox'] 
+  });
   console.log("打开热门页面")
   // 创建一个新页面
   const page = await browser.newPage();
