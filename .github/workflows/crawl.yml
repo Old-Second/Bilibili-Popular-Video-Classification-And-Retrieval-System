@@ -23,14 +23,38 @@ jobs:
       - name: Checkout main branch
         uses: actions/checkout@v4
 
-      - name: Setup Node.js and cache dependencies
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgbm-dev \
+            libxshmfence-dev \
+            libglu1-mesa-dev \
+            libx11-dev
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci --loglevel=verbose
+      - name: Configure npm
+        run: |
+          # 跳过 Chromium 下载（使用系统已安装版本）
+          export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+      
+      - name: Install Base Dependencies
+        run: npm ci --omit=optional --ignore-scripts --no-audit --no-fund
+
+      - name: Install Puppeteer Dependencies
+        run: |
+          # 单独安装 puppeteer 核心
+          npm install puppeteer-core@21.7.0
+          # 链接系统 Chromium
+          ln -s /usr/bin/chromium-browser ./node_modules/puppeteer-core/.local-chromium/linux-*/chrome-linux/chrome
+
+      - name: Install ESBuild
+        run: npm rebuild esbuild --platform=linux --arch=x64
 
       - name: Crawl data
         run: npm run start
