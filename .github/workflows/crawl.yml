@@ -27,6 +27,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
+            chromium \
             libgbm-dev \
             libxshmfence-dev \
             libglu1-mesa-dev \
@@ -40,18 +41,25 @@ jobs:
 
       - name: Configure npm
         run: |
-          # 跳过 Chromium 下载（使用系统已安装版本）
-          export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-      
+          npm config set registry https://registry.npmmirror.com
+          echo "PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1" >> $GITHUB_ENV
+          echo "PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium" >> $GITHUB_ENV
+
+      - name: Cache Node modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Install Base Dependencies
         run: npm ci --omit=optional --ignore-scripts --no-audit --no-fund
 
-      - name: Install Puppeteer Dependencies
-        run: |
-          # 单独安装 puppeteer 核心
-          npm install puppeteer-core@21.7.0
-          # 链接系统 Chromium
-          ln -s /usr/bin/chromium-browser ./node_modules/puppeteer-core/.local-chromium/linux-*/chrome-linux/chrome
+      - name: Install Puppeteer Core
+        run: npm install puppeteer-core@21.7.0
 
       - name: Install ESBuild
         run: npm rebuild esbuild --platform=linux --arch=x64
@@ -64,16 +72,18 @@ jobs:
         with:
           ref: result
           path: result-branch
+          sparse-checkout: result  # 只检出 result 目录
 
       - name: Sync crawled data
         run: |
-          rsync -av --delete result/ result-branch/
+          mkdir -p result-branch/result
+          rsync -av --delete result/ result-branch/result/
 
       - name: Commit and push results
         working-directory: result-branch
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git add .
+          git add result/
           git commit -m "$(TZ=Asia/Shanghai date +"%Y-%m-%d %H:%M:%S")"
           git push origin result

@@ -1,5 +1,5 @@
 // 引入所需的库和模块
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const fs = require('fs');
@@ -76,9 +76,15 @@ const processData = async (targetElement) => {
 // 爬取数据的主函数
 const crawlData = async () => {
   // 启动无头浏览器
+  const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium';
   const browser = await puppeteer.launch({ 
-    headless: 'new',
-    args: ['--no-sandbox', '--disable-setuid-sandbox'] 
+executablePath,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage'
+    ],
+    headless: 'new'
   });
   console.log("打开热门页面")
   // 创建一个新页面
