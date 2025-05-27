@@ -72,12 +72,12 @@ jobs:
         with:
           ref: result
           path: result-branch
-          sparse-checkout: result  # 只检出 result 目录
+          fetch-depth: 0
 
       - name: Sync crawled data
         run: |
           mkdir -p result-branch/result
-          rsync -av --delete result/ result-branch/result/
+          cp -r result/ result-branch/result/
 
       - name: Commit and push results
         working-directory: result-branch
