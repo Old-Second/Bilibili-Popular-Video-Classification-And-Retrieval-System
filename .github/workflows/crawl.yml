@@ -20,26 +20,36 @@ jobs:
   crawl:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout main branch
         uses: actions/checkout@v4
-      - name: Setup Node
+
+      - name: Setup Node.js and cache dependencies
         uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: npm
-      - name: Checkout to result branch
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Crawl data
+        run: npm run start
+
+      - name: Checkout result branch
+        uses: actions/checkout@v4
+        with:
+          ref: result
+          path: result-branch
+
+      - name: Sync crawled data
+        run: |
+          rsync -av --delete result/ result-branch/
+
+      - name: Commit and push results
+        working-directory: result-branch
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git checkout --orphan result
-          git pull origin result
-          git reset
-      - name: Install dependencies
-        run: npm install
-      - name: Crawl data
-        run: npm run start
-      - name: Push to result branch
-        run: |
-          git add result/* -f
+          git add .
           git commit -m "$(TZ=Asia/Shanghai date +"%Y-%m-%d %H:%M:%S")"
           git push origin result
